@@ -60,5 +60,5 @@ app.post('/submit_contact', (req, res) => {
 			console.log(`E-mail sent: ${info.response}`);
 		}
 	});
-	res.end();
+	res.redirect('https://jonathanlee.io')
 });
