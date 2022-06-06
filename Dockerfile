@@ -1,6 +1,6 @@
-FROM node:10
+FROM node:16-alpine3.15
 
-WORKDIR /usr/src/contact_node
+WORKDIR /usr/src/contact-node
 
 COPY package*.json ./
 
@@ -12,4 +12,3 @@ COPY . .
 EXPOSE 8080
 
 CMD [ "node", "server.js" ]
-
