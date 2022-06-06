@@ -26,7 +26,7 @@ client.connect(err => {
 	collection = client.db('jonathanlee_io').collection('contacts');
 
 	app.listen(PORT, () => {
-		console.log(`Running on https://jonathanlee.io:${PORT}`);
+		console.log(`Running on http://jonathanlee.io:${PORT}`);
 	});
 });
 
