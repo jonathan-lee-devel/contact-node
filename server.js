@@ -23,10 +23,10 @@ client.connect(err => {
 	if (err) {
 		console.error(err);
 	}
-	collection = client.db("jonathanlee_io").collection("contacts");
+	collection = client.db('jonathanlee_io').collection('contacts');
 
 	app.listen(PORT, () => {
-		console.log('Running on https://jonathanlee.io:' + PORT);
+		console.log(`Running on https://jonathanlee.io:${PORT}`);
 	});
 });
 
@@ -41,10 +41,10 @@ app.post('/submit_contact', (req, res) => {
 		console.error(err);
 	}
 
-	console.log('Saved to database:-' + new Date());
+	console.log(`Saved to database: ${new Date()}`);
 
-	const subjectString = 'Contact <' + email + '> Submitted on jonathanlee.io';
-	const textString = 'First Name: ' + firstname + '\nSurname: ' + surname + '\nE-mail: ' + email + '\nPhone: ' + phone + '\nMessage: ' + message;
+	const subjectString = `Contact ${email} Submitted on jonathanlee.io`;
+	const textString = `First Name: ${firstname}\nSurname: ${surname}\nE-mail: ${email}\nPhone: ${phone}\nMessage: ${message}`;
 
 	const mailOptions = {
 		from: process.env.EMAIL_USER,
@@ -57,7 +57,7 @@ app.post('/submit_contact', (req, res) => {
 		if(err) {
 			console.error(err);
 		} else {
-			console.log('E-mail sent' + info.response);
+			console.log(`E-mail sent: ${info.response}`);
 		}
 	});
 	res.end();
