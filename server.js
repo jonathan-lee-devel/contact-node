@@ -33,6 +33,10 @@ client.connect(err => {
 const Contact = require('./Contact.js');
 app.post('/submit_contact', (req, res) => {
 	const { firstname, surname, email, phone, message } = req.body;
+	if (firstname === 'Crytocruck' || surname === 'Crytocruck' ||
+		firstname === 'PampProg' || surname === 'PampProg') {
+		res.redirect('https://jonathanlee.io')
+	}
 
 	const contact = new Contact(firstname, surname, email, phone, message);
 	try {
