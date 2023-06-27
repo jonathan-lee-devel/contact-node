@@ -36,7 +36,7 @@ app.get('/', (req, res) => { // k8s health check
 	res.status(200).send();
 });
 
-app.post('/submit_contact', (req, res) => {
+app.post('/', (req, res) => {
 	const { firstname, surname, email, phone, message } = req.body;
 
 	const contact = new Contact(firstname, surname, email, phone, message);
