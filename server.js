@@ -1,69 +1,88 @@
 const express = require('express');
-const app = express();
-app.use(express.urlencoded());
-const PORT = 8080;
+const cors = require('cors');
 
-const nodemailer = require('nodemailer');
-const transporter = nodemailer.createTransport({
-	service: 'gmail',
-	auth: {
-		user: process.env.EMAIL_USER,
-		pass: process.env.EMAIL_PASSWORD,
-	}
-});
+async function main() {
+  const PORT = 8080;
+  const app = express();
+  let origin = `http://localhost:${PORT}`;
+  if (process.env.NODE_ENV === 'production') {
+    origin = 'https://jonathanlee.io';
+  }
+  if (process.env.NODE_ENV === 'staging') {
+    origin = 'https://staging.jonathanlee.io';
+  }
+  app.use(cors({ credentials: true, optionsSuccessStatus: 200, origin }));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
-const MongoClient = require('mongodb').MongoClient;
-const client = new MongoClient(
-	process.env.DATABASE_URL,
-	{ useNewUrlParser: true, useUnifiedTopology: true }
-);
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
 
-let collection;
-client.connect(err => {
-	if (err) {
-		console.error(err);
-	}
-	collection = client.db('jonathanlee_io').collection('contacts');
+  const MongoClient = require('mongodb').MongoClient;
+  const client = new MongoClient(process.env.DATABASE_URL);
 
-	app.listen(PORT, () => {
-		console.log(`Running on http://jonathanlee.io:${PORT}`);
-	});
-});
+  console.log(
+    `Attempting to connect to database at: ${process.env.DATABASE_URL}`
+  );
 
-const Contact = require('./Contact.js');
+  await client.connect();
+  const databaseCollection = client.db('jonathanlee_io').collection('contacts');
+  app.listen(PORT, () => {
+    console.log(`Running on http://jonathanlee.io:${PORT}`);
+  });
 
-app.get('/', (req, res) => { // k8s health check
-	res.status(200).send();
-});
+  const Contact = require('./Contact.js');
 
-app.post('/', (req, res) => {
-	const { firstname, surname, email, phone, message } = req.body;
+  app.get('/', (req, res) => {
+    // k8s health check
+    res.status(200).send();
+  });
 
-	const contact = new Contact(firstname, surname, email, phone, message);
-	try {
-		collection.insertOne(contact);
-	} catch (err) {
-		console.error(err);
-	}
+  app.post('/', (req, res) => {
+    const { firstname, surname, email, phone, message } = req.body;
 
-	console.log(`Saved to database: ${new Date()}`);
+    const contact = new Contact(firstname, surname, email, phone, message);
+    databaseCollection.insertOne(contact).catch((err) => {
+      console.error(err);
+    });
 
-	const subjectString = `Contact ${email} Submitted on jonathanlee.io`;
-	const textString = `First Name: ${firstname}\nSurname: ${surname}\nE-mail: ${email}\nPhone: ${phone}\nMessage: ${message}`;
+    console.log(`Saved to database: ${new Date()}`);
 
-	const mailOptions = {
-		from: process.env.EMAIL_USER,
-		to: process.env.TARGET_EMAIL,
-		subject: subjectString,
-		text: textString
-	};
+    const subjectString = `Contact ${email} Submitted on jonathanlee.io`;
+    const textString = `First Name: ${firstname}\nSurname: ${surname}\nE-mail: ${email}\nPhone: ${phone}\nMessage: ${message}`;
 
-	transporter.sendMail(mailOptions, function(err, info){
-		if(err) {
-			console.error(err);
-		} else {
-			console.log(`E-mail sent: ${info.response}`);
-		}
-	});
-	res.redirect('https://jonathanlee.io')
-});
+    const mailOptions = {
+      from: `${process.env.NODE_ENV} <${process.env.EMAIL_USER}>`,
+      to: process.env.TARGET_EMAIL,
+      subject: subjectString,
+      text: textString,
+    };
+
+    transporter.sendMail(mailOptions, function (err, info) {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(
+          `E-mail sent to ${process.env.TARGET_EMAIL}: ${info.response}`
+        );
+      }
+    });
+    res.redirect(
+      process.env.NODE_ENV === 'production'
+        ? 'https://jonathanlee.io'
+        : 'https://staging.jonathanlee.io'
+    );
+  });
+}
+
+main()
+  .then((_) => {})
+  .catch((err) => {
+    throw err;
+  });
