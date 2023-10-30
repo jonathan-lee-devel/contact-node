@@ -1,6 +1,6 @@
 {
   "name": "contact-node",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Submit Contact Form Node",
   "author": "Jonathan Lee <jonathan.lee.devel@gmail.com>",
   "main": "server.js",
