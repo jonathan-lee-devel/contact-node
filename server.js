@@ -44,7 +44,7 @@ async function main() {
     res.status(200).send();
   });
 
-  app.post('/', (req, res) => {
+  app.post('/submit_contact', (req, res) => {
     const { firstname, surname, email, phone, message } = req.body;
 
     const contact = new Contact(firstname, surname, email, phone, message);
